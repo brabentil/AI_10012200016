@@ -25,10 +25,10 @@ export default function Home() {
       settings={settings} 
       onRagDataUpdate={handleRagDataUpdate}
     >
-      <div className="flex flex-col h-svh bg-background">
-        <header className="flex h-20 items-center justify-between px-8 border-b shrink-0 bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <div className="flex flex-col h-screen bg-background overflow-hidden">
+        <header className="flex h-20 items-center justify-between px-8 border-b border-white/10 shrink-0 bg-black/50 backdrop-blur-md z-50">
           <div className="flex items-center gap-3">
-            <div className="relative w-12 h-12 transition-transform hover:scale-105 duration-300">
+            <div className="relative w-12 h-12 transition-transform hover:scale-105 duration-300 shrink-0">
               <Image 
                 src="/logo.png" 
                 alt="BlackStar AI" 
@@ -38,17 +38,20 @@ export default function Home() {
                 className="object-contain"
               />
             </div>
-            <span className="font-heading font-bold text-2xl tracking-tighter bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">
+            <span className="font-heading font-bold text-3xl tracking-tighter bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 bg-clip-text text-transparent">
               BlackStar AI
             </span>
           </div>
         </header>
 
-        {/* PROOF OF RAG: Inspector component for exam requirements */}
-        <RagMetadataInspector data={ragData} />
-        
-        <main className="flex-1 overflow-hidden relative">
-          <Thread />
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+          {/* PROOF OF RAG: Inspector component for exam requirements */}
+          <div className="shrink-0 border-b bg-muted/20">
+            <RagMetadataInspector data={ragData} />
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <Thread />
+          </div>
         </main>
       </div>
     </BlackStarRuntimeProvider>

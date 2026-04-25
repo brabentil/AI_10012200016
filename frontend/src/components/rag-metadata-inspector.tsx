@@ -1,31 +1,28 @@
-import { QueryResponse } from "@/lib/types";
+import { type QueryResponse } from "@/lib/types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronRight, Database, Code, Activity } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, Database, Activity, Code } from "lucide-react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
   data: QueryResponse | null;
 }
 
-/**
- * RAG Metadata Inspector
- * 
- * Specifically designed to meet Part D requirements of the AI exam:
- * - Display retrieved documents
- * - Display similarity scores
- * - Show final prompt sent to LLM
- */
 export function RagMetadataInspector({ data }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Diagnostic logger for brute-force state verification
+  useEffect(() => {
+    console.log("[Inspector] Open state changed:", isOpen);
+  }, [isOpen]);
 
   if (!data) return null;
 
   return (
-    <div className="border-t bg-muted/20 border-b">
-      <Collapsible open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
+    <div className="border-t bg-muted/20 border-b relative z-60">
+      <Collapsible open={isOpen} onOpenChange={(val) => setIsOpen(val)}>
         <CollapsibleTrigger 
-          className="flex w-full items-center justify-between px-6 py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer group"
+          className="flex w-full items-center justify-between px-6 py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer relative z-[100]"
         >
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5">
@@ -38,14 +35,14 @@ export function RagMetadataInspector({ data }: Props) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-widest opacity-60 font-bold">
+            <span className="text-[10px] uppercase tracking-tighter opacity-70 font-bold">
               {isOpen ? "Close Inspector" : "Inspect Reasoning"}
             </span>
             <ChevronRight className={cn("h-4 w-4 transition-transform duration-300", isOpen && "rotate-90")} />
           </div>
         </CollapsibleTrigger>
         
-        <CollapsibleContent className="px-6 pb-6 pt-2 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-300">
+        <CollapsibleContent className="px-6 pb-6 pt-2 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-300 data-[state=closed]:hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[450px]">
             
             {/* PART D: Retrieved Documents & Similarity Scores */}

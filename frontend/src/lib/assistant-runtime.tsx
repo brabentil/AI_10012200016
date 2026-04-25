@@ -27,10 +27,12 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
     setIsLoading(true);
     
     // Add a temporary "typing" message to the UI
+    const loadingId = "loading-" + Math.random().toString(36).slice(2, 9);
     setMessages([...baseMessages, {
       role: "assistant",
       content: [{ type: "text", text: "" }],
-      id: "loading-state",
+      id: loadingId,
+      parentId: baseMessages[baseMessages.length - 1]?.id || null,
       metadata: { isTyping: true }
     }]);
 
@@ -51,7 +53,9 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
       const assistantMsg: ThreadMessage = {
         role: "assistant",
         content: [{ type: "text", text: ragData.response || "No response." }],
-        id: `assistant-${Date.now()}`,
+        id: "asst-" + Math.random().toString(36).slice(2, 9) + Date.now(),
+        parentId: baseMessages[baseMessages.length - 1]?.id || null,
+        metadata: { ragData } // Persist for branch switching / history
       };
       setMessages([...baseMessages, assistantMsg]);
     } catch (err) {
@@ -75,7 +79,8 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
     const userMsg: ThreadMessage = {
       role: "user",
       content: [{ type: "text", text: content }],
-      id: `user-${Date.now()}`,
+      id: "user-" + Math.random().toString(36).slice(2, 9) + Date.now(),
+      parentId: messages[messages.length - 1]?.id || null,
     };
     
     const newMessages = [...messages, userMsg];
@@ -109,27 +114,46 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
     await processQuery(prompt, baseMessages);
   }, [messages, processQuery, onRagDataUpdate]);
 
+  const onSwitchBranch = useCallback(async (messageId: string) => {
+    const index = messages.findIndex(m => m.id === messageId);
+    if (index === -1) return;
+    
+    // Reconstruct history up to this point
+    const newPath = messages.slice(0, index + 1);
+    setMessages(newPath);
+
+    // Sync RAG Inspector with the metadata of the last assistant message in this branch
+    const lastAssistantMsg = [...newPath].reverse().find(m => m.role === "assistant");
+    if (lastAssistantMsg?.metadata?.ragData) {
+      onRagDataUpdate(lastAssistantMsg.metadata.ragData);
+    }
+  }, [messages, onRagDataUpdate]);
+
   const convertMessage = useCallback((message: any) => {
     return {
       id: message.id,
       role: message.role,
       content: message.content,
+      parentId: message.parentId || null,
       createdAt: message.createdAt || new Date(),
       ...(message.role === "assistant" 
         ? { status: { type: message.metadata?.isTyping ? "running" : "complete", reason: "stop" } as any } 
         : {}),
-      metadata: { custom: message.metadata || {} },
+      metadata: { 
+        ...message.metadata,
+        custom: message.metadata || {} 
+      },
     };
   }, []);
 
-  // Fix: Stabilize runtime config to prevent infinite re-render loops
   const runtimeConfig = useMemo(() => ({
     messages,
     onNew,
     onReload,
+    onSwitchBranch,
     isRunning: isLoading,
     convertMessage,
-  }), [messages, onNew, onReload, isLoading, convertMessage]);
+  }), [messages, onNew, onReload, onSwitchBranch, isLoading, convertMessage]);
 
   const runtime = useExternalStoreRuntime(runtimeConfig);
 

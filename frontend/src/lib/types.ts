@@ -86,6 +86,7 @@ export interface ThreadMessage {
   role: "user" | "assistant";
   content: { type: "text"; text: string }[];
   id: string;
+  parentId?: string | null;
   metadata?: any;
 }
 
