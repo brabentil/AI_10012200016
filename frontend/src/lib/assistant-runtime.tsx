@@ -6,15 +6,7 @@ import {
   useExternalStoreRuntime,
 } from "@assistant-ui/react";
 import { postQuery } from "@/lib/api";
-import type { ChatMessage, ChatSettings, QueryResponse } from "@/lib/types";
-
-// assistant-ui expects this shape for messages in external store
-type ThreadMessage = {
-  role: "user" | "assistant";
-  content: { type: "text"; text: string }[];
-  id: string;
-  metadata?: any;
-};
+import type { ThreadMessage, ChatSettings, QueryResponse } from "@/lib/types";
 
 interface Props {
   children: ReactNode;
@@ -56,12 +48,12 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
       // 3. Update the global RAG panel data
       onRagDataUpdate(ragData);
 
-      // 4. Add assistant message to state with metadata
+      // 4. Add assistant message to state
       const assistantMsg: ThreadMessage = {
         role: "assistant",
         content: [{ type: "text", text: ragData.response || "No response." }],
         id: `assistant-${Date.now()}`,
-        metadata: { ragData },
+        // Fix: Removed massive ragData object from metadata to prevent memory leaks
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
@@ -87,12 +79,15 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
     };
   }, []);
 
-  const runtime = useExternalStoreRuntime({
+  // Fix: Stabilize runtime config to prevent infinite re-render loops
+  const runtimeConfig = useMemo(() => ({
     messages,
     onNew,
     isRunning: isLoading,
     convertMessage,
-  });
+  }), [messages, onNew, isLoading, convertMessage]);
+
+  const runtime = useExternalStoreRuntime(runtimeConfig);
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>

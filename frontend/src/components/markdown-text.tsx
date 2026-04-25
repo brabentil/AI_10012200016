@@ -9,16 +9,19 @@ import {
   useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
-import { type FC, memo, useState } from "react";
+import { type FC, memo, useState, useEffect, useRef } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 
 import { TooltipIconButton } from "@/components/tooltip-icon-button";
 import { cn } from "@/lib/utils";
 
+// Fix A: Moved plugin array outside to stabilize reference
+const REMARK_PLUGINS = [remarkGfm];
+
 const MarkdownTextImpl = () => {
   return (
     <MarkdownTextPrimitive
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={REMARK_PLUGINS}
       className="aui-md"
       components={defaultComponents}
     />
@@ -53,15 +56,24 @@ const useCopyToClipboard = ({
   copiedDuration?: number;
 } = {}) => {
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const copyToClipboard = (value: string) => {
     if (!value) return;
 
     navigator.clipboard.writeText(value).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), copiedDuration);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setIsCopied(false), copiedDuration);
     });
   };
+
+  // Fix B: Added cleanup to prevent orphaned timers
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return { isCopied, copyToClipboard };
 };

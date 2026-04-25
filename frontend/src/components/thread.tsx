@@ -36,6 +36,12 @@ import {
 } from "lucide-react";
 import type { FC } from "react";
 
+const ThreadMessages: FC = () => {
+  return <ThreadPrimitive.Messages>{ThreadMessageComponent}</ThreadPrimitive.Messages>;
+};
+
+const ThreadMessageComponent = () => <ThreadMessage />;
+
 export const Thread: FC = () => {
   return (
     <ThreadPrimitive.Root
@@ -60,9 +66,7 @@ export const Thread: FC = () => {
             data-slot="aui_message-group"
             className="mb-10 flex flex-col gap-y-8 empty:hidden"
           >
-            <ThreadPrimitive.Messages>
-              {() => <ThreadMessage />}
-            </ThreadPrimitive.Messages>
+            <ThreadMessages />
           </div>
 
           <ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mt-auto flex flex-col gap-4 overflow-visible rounded-t-(--composer-radius) bg-background pb-4 md:pb-6">
@@ -96,7 +100,14 @@ const ThreadWelcome: FC = () => {
       <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
         <div className="aui-thread-welcome-message flex size-full flex-col items-center justify-center px-4">
           <div className="relative w-16 h-16 mb-6 opacity-90">
-            <Image src="/navbar-icon.png" alt="" fill className="object-contain" aria-hidden="true" />
+            <Image 
+              src="/navbar-icon.png" 
+              alt="" 
+              fill 
+              sizes="64px"
+              className="object-contain" 
+              aria-hidden="true" 
+            />
           </div>
           <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
             What can I help with?

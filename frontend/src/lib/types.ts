@@ -79,6 +79,16 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+/**
+ * Specifically for assistant-ui's useExternalStoreRuntime
+ */
+export interface ThreadMessage {
+  role: "user" | "assistant";
+  content: { type: "text"; text: string }[];
+  id: string;
+  metadata?: any;
+}
+
 /* ── Settings (local UI state) ───────────────────────────────── */
 
 export interface ChatSettings {
