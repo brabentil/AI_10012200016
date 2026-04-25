@@ -1,10 +1,10 @@
 import type { QueryRequest, QueryResponse } from "./types";
 
 /* All requests go through the Next.js proxy route to avoid CORS */
-const PROXY = "/api/query";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ai-10012200016.onrender.com";
 
 export async function postQuery(req: QueryRequest): Promise<QueryResponse> {
-  const res = await fetch(PROXY, {
+  const res = await fetch(`${API_URL}/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
