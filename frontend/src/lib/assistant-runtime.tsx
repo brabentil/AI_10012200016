@@ -23,50 +23,81 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const onNew = useCallback(async (message: any) => {
-    const content = message.content[0].text; // Simplify for now
+  const processQuery = useCallback(async (prompt: string, baseMessages: ThreadMessage[]) => {
     setIsLoading(true);
-    
-    // 1. Add user message to state
-    const userMsg: ThreadMessage = {
-      role: "user",
-      content: [{ type: "text", text: content }],
-      id: `user-${Date.now()}`,
-    };
-    setMessages(prev => [...prev, userMsg]);
-
     try {
-      // 2. Call our RAG backend
+      // 1. Call our RAG backend
       const ragData = await postQuery({
-        query: content,
+        query: prompt,
         top_k: settings.top_k,
         hybrid_alpha: settings.hybrid_alpha,
         llm_model: settings.llm_model,
         max_context_tokens: settings.max_context_tokens,
       });
 
-      // 3. Update the global RAG panel data
+      // 2. Update the global RAG panel data
       onRagDataUpdate(ragData);
 
-      // 4. Add assistant message to state
+      // 3. Add assistant message to state
       const assistantMsg: ThreadMessage = {
         role: "assistant",
         content: [{ type: "text", text: ragData.response || "No response." }],
         id: `assistant-${Date.now()}`,
-        // Fix: Removed massive ragData object from metadata to prevent memory leaks
       };
-      setMessages(prev => [...prev, assistantMsg]);
+      setMessages([...baseMessages, assistantMsg]);
     } catch (err) {
+      // Handle network errors (e.g. Render backend cold start)
       const errorMsg: ThreadMessage = {
         role: "assistant",
-        content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : "Unknown error"}` }],
+        content: [{ 
+          type: "text", 
+          text: `Error: ${err instanceof Error ? err.message : "Connection failed. Please wait for the backend to wake up."}` 
+        }],
         id: `error-${Date.now()}`,
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages([...baseMessages, errorMsg]);
     } finally {
       setIsLoading(false);
     }
   }, [settings, onRagDataUpdate]);
+
+  const onNew = useCallback(async (message: any) => {
+    const content = message.content[0]?.text || "";
+    const userMsg: ThreadMessage = {
+      role: "user",
+      content: [{ type: "text", text: content }],
+      id: `user-${Date.now()}`,
+    };
+    
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    await processQuery(content, newMessages);
+  }, [messages, processQuery]);
+
+  const onReload = useCallback(async (messageId: string) => {
+    const index = messages.findIndex(m => m.id === messageId);
+    if (index === -1) return;
+
+    let prompt = "";
+    let baseMessages: ThreadMessage[] = [];
+
+    const targetMsg = messages[index];
+    if (targetMsg.role === "assistant") {
+      // Reloading Assistant: Remove it and find preceding User message
+      const userMsg = messages[index - 1];
+      if (!userMsg || userMsg.role !== "user") return;
+      prompt = (userMsg.content[0]?.text as string) || "";
+      baseMessages = messages.slice(0, index);
+    } else {
+      // Reloading User: Remove subsequent messages and redo this prompt
+      prompt = (targetMsg.content[0]?.text as string) || "";
+      baseMessages = messages.slice(0, index + 1);
+    }
+
+    setMessages(baseMessages);
+    onRagDataUpdate(null);
+    await processQuery(prompt, baseMessages);
+  }, [messages, processQuery, onRagDataUpdate]);
 
   const convertMessage = useCallback((message: any) => {
     return {
@@ -83,9 +114,10 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
   const runtimeConfig = useMemo(() => ({
     messages,
     onNew,
+    onReload,
     isRunning: isLoading,
     convertMessage,
-  }), [messages, onNew, isLoading, convertMessage]);
+  }), [messages, onNew, onReload, isLoading, convertMessage]);
 
   const runtime = useExternalStoreRuntime(runtimeConfig);
 
