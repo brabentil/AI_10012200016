@@ -116,7 +116,7 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
       content: message.content,
       createdAt: message.createdAt || new Date(),
       ...(message.role === "assistant" 
-        ? { status: { type: message.metadata?.isTyping ? "in-progress" : "complete", reason: "stop" } as any } 
+        ? { status: { type: message.metadata?.isTyping ? "running" : "complete", reason: "stop" } as any } 
         : {}),
       metadata: { custom: message.metadata || {} },
     };

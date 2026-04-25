@@ -19,6 +19,7 @@ import {
   MessagePrimitive,
   SuggestionPrimitive,
   ThreadPrimitive,
+  useThreadRuntime,
   useAuiState,
 } from "@assistant-ui/react";
 import {
@@ -57,11 +58,13 @@ export const Thread: FC = () => {
         data-slot="aui_thread-viewport"
         className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth"
       >
-        <div className="mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4">
-          <AuiIf condition={(s) => s.thread.isEmpty}>
+        <AuiIf condition={(s) => s.thread.isEmpty}>
+          <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
             <ThreadWelcome />
-          </AuiIf>
+          </div>
+        </AuiIf>
 
+        <div className="mx-auto flex w-full max-w-(--thread-max-width) flex-col px-4 pt-4">
           <div
             data-slot="aui_message-group"
             className="mb-10 flex flex-col gap-y-8 empty:hidden"
@@ -69,7 +72,7 @@ export const Thread: FC = () => {
             <ThreadMessages />
           </div>
 
-          <ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mt-auto flex flex-col gap-4 overflow-visible rounded-t-(--composer-radius) bg-background pb-4 md:pb-6">
+          <ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mt-auto flex flex-col gap-4 overflow-visible bg-background pb-4 md:pb-6">
             <ThreadScrollToBottom />
             <Composer />
           </ThreadPrimitive.ViewportFooter>
@@ -95,44 +98,37 @@ const ThreadScrollToBottom: FC = () => {
 };
 
 const ThreadWelcome: FC = () => {
+  const thread = useThreadRuntime();
+
   return (
-    <div className="aui-thread-welcome-root my-auto flex grow flex-col">
-      <div className="aui-thread-welcome-center flex w-full grow flex-col items-center justify-center">
-        <div className="aui-thread-welcome-message flex size-full flex-col items-center justify-center px-4">
-          <div className="relative w-16 h-16 mb-6 opacity-90">
-            <Image 
-              src="/logo.png" 
-              alt="" 
-              fill 
-              sizes="64px"
-              className="object-contain" 
-              aria-hidden="true" 
-            />
-          </div>
-          <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
-            What can I help with?
-          </h1>
+    <div className="aui-thread-welcome-root flex flex-col items-center max-w-2xl mx-auto py-20">
+      <div className="flex flex-col items-center px-4 text-center">
+        <h1 className="font-heading font-bold text-5xl tracking-tighter mb-4 bg-gradient-to-br from-foreground to-foreground/40 bg-clip-text text-transparent">
+          BlackStar AI
+        </h1>
+        <p className="text-muted-foreground text-sm mb-12 max-w-md leading-relaxed text-balance">
+          Intelligence Portal for Ghanaian Civic Data. Analyze the 2025 Budget Statement 
+          and historical election results with precision.
+        </p>
+        
+        {/* Sample Questions Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          {[
+            "What are the key priorities of the 2025 Ghana Budget?",
+            "Analyze the election results for the Ashanti region.",
+            "How does the 2025 budget plan to reset the economy?",
+            "Compare party performance across different years."
+          ].map((question) => (
+            <button
+              key={question}
+              onClick={() => thread.append({ role: "user", content: [{ type: "text", text: question }] })}
+              className="flex items-center justify-center p-4 rounded-2xl border bg-muted/20 text-[13px] font-medium text-muted-foreground hover:bg-muted/50 hover:border-primary/40 hover:text-foreground transition-all cursor-pointer text-center h-full min-h-[64px]"
+            >
+              {question}
+            </button>
+          ))}
         </div>
       </div>
-      <ThreadSuggestions />
-    </div>
-  );
-};
-
-const ThreadSuggestions: FC = () => {
-  return (
-    <div className="aui-thread-welcome-suggestions grid w-full @md:grid-cols-2 gap-2 pb-4">
-      <ThreadPrimitive.Suggestions>
-        {() => <ThreadSuggestionItem />}
-      </ThreadPrimitive.Suggestions>
-    </div>
-  );
-};
-
-const ThreadSuggestionItem: FC = () => {
-  return (
-    <div className="aui-thread-welcome-suggestion-display fade-in slide-in-from-bottom-2 @md:nth-[n+3]:block nth-[n+3]:hidden animate-in fill-mode-both duration-200">
-      <SuggestionPrimitive.Trigger send render={<Button variant="ghost" className="aui-thread-welcome-suggestion h-auto w-full @md:flex-col flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-start text-sm transition-colors hover:bg-muted" />}><SuggestionPrimitive.Title className="aui-thread-welcome-suggestion-text-1 font-medium" /><SuggestionPrimitive.Description className="aui-thread-welcome-suggestion-text-2 text-muted-foreground empty:hidden" /></SuggestionPrimitive.Trigger>
     </div>
   );
 };
@@ -198,6 +194,13 @@ const AssistantMessage: FC = () => {
             tools: { Fallback: ToolFallback },
           }}
         />
+        <AuiIf condition={(s) => s.message.status?.type === "running"}>
+          <div className="flex items-center gap-1.5 py-2">
+            <div className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+            <div className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+            <div className="size-1.5 animate-bounce rounded-full bg-primary" />
+          </div>
+        </AuiIf>
         <MessageError />
       </div>
 

@@ -23,10 +23,9 @@ export function RagMetadataInspector({ data }: Props) {
 
   return (
     <div className="border-t bg-muted/20 border-b">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Collapsible open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
         <CollapsibleTrigger 
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex w-full items-center justify-between px-6 py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+          className="flex w-full items-center justify-between px-6 py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer group"
         >
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5">
