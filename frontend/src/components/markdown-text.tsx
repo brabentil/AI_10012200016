@@ -9,10 +9,14 @@ import {
   useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import mermaid from "mermaid";
 import { visit } from "unist-util-visit";
 import { type FC, memo, useState, useEffect, useRef } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 
+import "katex/dist/katex.min.css";
 import { TooltipIconButton } from "@/components/tooltip-icon-button";
 import { cn } from "@/lib/utils";
 
@@ -49,12 +53,34 @@ const remarkCitation = () => {
   };
 };
 
-const REMARK_PLUGINS = [remarkGfm, remarkCitation];
+const Mermaid = ({ code }: { code: string }) => {
+  const [svg, setSvg] = useState("");
+  const id = useRef(`mermaid-${Math.random().toString(36).substr(2, 9)}`);
+
+  useEffect(() => {
+    mermaid.initialize({ startOnLoad: false, theme: "dark" });
+    const render = async () => {
+      try {
+        const { svg } = await mermaid.render(id.current, code);
+        setSvg(svg);
+      } catch (e) {
+        console.error("Mermaid render error", e);
+      }
+    };
+    render();
+  }, [code]);
+
+  return <div className="my-4 flex justify-center overflow-x-auto rounded-lg bg-muted/20 p-4" dangerouslySetInnerHTML={{ __html: svg }} />;
+};
+
+const REMARK_PLUGINS = [remarkGfm, remarkMath, remarkCitation];
+const REHYPE_PLUGINS = [rehypeKatex];
 
 const MarkdownTextImpl = () => {
   return (
     <MarkdownTextPrimitive
       remarkPlugins={REMARK_PLUGINS}
+      rehypePlugins={REHYPE_PLUGINS}
       className="aui-md"
       components={defaultComponents}
     />
@@ -271,8 +297,14 @@ const defaultComponents = memoizeMarkdownComponents({
       {...props}
     />
   ),
-  code: function Code({ className, ...props }) {
+  code: function Code({ className, children, ...props }: any) {
     const isCodeBlock = useIsMarkdownCodeBlock();
+    const language = className?.replace("language-", "");
+
+    if (isCodeBlock && language === "mermaid") {
+      return <Mermaid code={String(children)} />;
+    }
+
     return (
       <code
         className={cn(
@@ -281,7 +313,9 @@ const defaultComponents = memoizeMarkdownComponents({
           className,
         )}
         {...props}
-      />
+      >
+        {children}
+      </code>
     );
   },
   cite: ({ id, label }: any) => (
