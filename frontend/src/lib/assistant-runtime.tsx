@@ -74,7 +74,8 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
     await processQuery(content, newMessages);
   }, [messages, processQuery]);
 
-  const onReload = useCallback(async (messageId: string) => {
+  const onReload = useCallback(async (messageId: string | null) => {
+    if (!messageId) return;
     const index = messages.findIndex(m => m.id === messageId);
     if (index === -1) return;
 
