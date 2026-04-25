@@ -18,6 +18,8 @@ class QueryRequest(BaseModel):
     max_context_tokens: int = Field(default=1200, ge=200, le=4000)
 
 
+import gc
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Pre-load the model and indexes into the global _RUNTIME_CACHE
@@ -25,6 +27,8 @@ async def lifespan(app: FastAPI):
         code_root=Path(__file__).resolve().parents[2],
         embedding_model="sentence-transformers/all-MiniLM-L6-v2",
     )
+    # Explicitly clear transient memory after heavy model/index loading
+    gc.collect()
     yield
 
 

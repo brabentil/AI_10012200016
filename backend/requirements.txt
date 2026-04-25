@@ -27,7 +27,7 @@ networkx==3.6.1
 numpy==2.4.4
 openai==2.32.0
 packaging==26.1
-pandas==3.0.2
+# pandas removed to save memory
 pydantic==2.13.3
 pydantic_core==2.46.3
 Pygments==2.20.0
