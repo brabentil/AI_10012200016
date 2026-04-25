@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.scripts.run_full_pipeline import run_pipeline
+from backend.scripts.run_full_pipeline import get_runtime, run_pipeline
 
 
 class QueryRequest(BaseModel):
@@ -16,7 +17,17 @@ class QueryRequest(BaseModel):
     max_context_tokens: int = Field(default=1200, ge=200, le=4000)
 
 
-app = FastAPI(title="Academic City RAG API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pre-load the model and indexes into the global _RUNTIME_CACHE
+    get_runtime(
+        code_root=Path(__file__).resolve().parents[2],
+        embedding_model="sentence-transformers/all-MiniLM-L6-v2",
+    )
+    yield
+
+
+app = FastAPI(title="Academic City RAG API", version="1.0.0", lifespan=lifespan)
 
 
 @app.get("/health")

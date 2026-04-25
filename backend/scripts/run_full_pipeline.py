@@ -258,8 +258,8 @@ def get_runtime(
     chunks = load_jsonl(chunk_file)
     embeddings = np.load(code_root / "indexes" / "faiss" / "chunk_embeddings.npy")
     # Keep index load to ensure artifact exists and is compatible.
-    faiss.read_index(str(code_root / "indexes" / "faiss" / "retrieval.index"))
-    model = SentenceTransformer(embedding_model)
+    index = faiss.read_index(str(code_root / "indexes" / "faiss" / "retrieval.index"))
+    model = SentenceTransformer(embedding_model, device="cpu")
     vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2))
     tfidf_matrix = vectorizer.fit_transform([c["text"] for c in chunks])
 
@@ -270,6 +270,7 @@ def get_runtime(
         "model": model,
         "vectorizer": vectorizer,
         "tfidf_matrix": tfidf_matrix,
+        "index": index,
     }
     _RUNTIME_CACHE[cache_key] = runtime
     return runtime
