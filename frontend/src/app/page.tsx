@@ -27,6 +27,8 @@ export default function Home() {
                 src="/navbar-icon.png" 
                 alt="BlackStar AI" 
                 fill 
+                priority
+                sizes="32px"
                 className="object-contain"
               />
             </div>
