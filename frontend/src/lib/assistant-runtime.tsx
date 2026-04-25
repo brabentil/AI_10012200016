@@ -25,6 +25,15 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
 
   const processQuery = useCallback(async (prompt: string, baseMessages: ThreadMessage[]) => {
     setIsLoading(true);
+    
+    // Add a temporary "typing" message to the UI
+    setMessages([...baseMessages, {
+      role: "assistant",
+      content: [{ type: "text", text: "" }],
+      id: "loading-state",
+      metadata: { isTyping: true }
+    }]);
+
     try {
       // 1. Call our RAG backend
       const ragData = await postQuery({
@@ -38,7 +47,7 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
       // 2. Update the global RAG panel data
       onRagDataUpdate(ragData);
 
-      // 3. Add assistant message to state
+      // 3. Add final assistant message to state (replacing the typing one)
       const assistantMsg: ThreadMessage = {
         role: "assistant",
         content: [{ type: "text", text: ragData.response || "No response." }],
@@ -106,7 +115,9 @@ export function BlackStarRuntimeProvider({ children, settings, onRagDataUpdate }
       role: message.role,
       content: message.content,
       createdAt: message.createdAt || new Date(),
-      ...(message.role === "assistant" ? { status: { type: "complete", reason: "stop" } as const } : {}),
+      ...(message.role === "assistant" 
+        ? { status: { type: message.metadata?.isTyping ? "in-progress" : "complete", reason: "stop" } as any } 
+        : {}),
       metadata: { custom: message.metadata || {} },
     };
   }, []);

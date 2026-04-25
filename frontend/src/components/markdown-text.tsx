@@ -9,6 +9,7 @@ import {
   useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
+import { visit } from "unist-util-visit";
 import { type FC, memo, useState, useEffect, useRef } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 
@@ -16,7 +17,39 @@ import { TooltipIconButton } from "@/components/tooltip-icon-button";
 import { cn } from "@/lib/utils";
 
 // Fix A: Moved plugin array outside to stabilize reference
-const REMARK_PLUGINS = [remarkGfm];
+const remarkCitation = () => {
+  return (tree: any) => {
+    visit(tree, "text", (node: any, index: any, parent: any) => {
+      const regex = /\[([a-zA-Z0-9_-]+)\]/g;
+      if (!node.value || typeof node.value !== "string") return;
+      
+      const matches = [...node.value.matchAll(regex)];
+      if (matches.length > 0) {
+        const nodes: any[] = [];
+        let lastIndex = 0;
+        for (const match of matches) {
+          if (match.index! > lastIndex) {
+            nodes.push({ type: "text", value: node.value.slice(lastIndex, match.index) });
+          }
+          nodes.push({
+            type: "citation",
+            data: { 
+              hName: "cite", 
+              hProperties: { id: match[1], label: match[0] } 
+            }
+          });
+          lastIndex = match.index! + match[0].length;
+        }
+        if (lastIndex < node.value.length) {
+          nodes.push({ type: "text", value: node.value.slice(lastIndex) });
+        }
+        parent.children.splice(index, 1, ...nodes);
+      }
+    });
+  };
+};
+
+const REMARK_PLUGINS = [remarkGfm, remarkCitation];
 
 const MarkdownTextImpl = () => {
   return (
@@ -251,5 +284,13 @@ const defaultComponents = memoizeMarkdownComponents({
       />
     );
   },
+  cite: ({ id, label }: any) => (
+    <span 
+      title={`Citation: ${id}`}
+      className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-mono text-[10px] font-bold border border-primary/20 mx-0.5 cursor-help transition-all hover:bg-primary/20 hover:scale-105 active:scale-95 shadow-sm"
+    >
+      {label}
+    </span>
+  ),
   CodeHeader,
 });
