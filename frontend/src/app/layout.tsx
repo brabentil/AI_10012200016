@@ -18,6 +18,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "BlackStar AI",
   description: "Retrieval-augmented question answering over Ghana civic documents.",
+  icons: {
+    icon: "/logo_solid_background.ico",
+    shortcut: "/logo_solid_background.ico",
+    apple: "/logo_solid_background.ico",
+  },
 };
 
 export default function RootLayout({

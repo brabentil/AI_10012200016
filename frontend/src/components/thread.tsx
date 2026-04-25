@@ -102,13 +102,6 @@ const ThreadWelcome: FC = () => {
   return (
     <div className="aui-thread-welcome-root flex flex-col items-center max-w-2xl mx-auto py-20">
       <div className="flex flex-col items-center px-4 text-center">
-        <h1 className="font-heading font-bold text-5xl tracking-tighter mb-4 bg-gradient-to-br from-foreground to-foreground/40 bg-clip-text text-transparent">
-          BlackStar AI
-        </h1>
-        <p className="text-muted-foreground text-sm mb-12 max-w-md leading-relaxed text-balance">
-          Intelligence Portal for Ghanaian Civic Data. Analyze the 2025 Budget Statement
-          and historical election results with precision.
-        </p>
 
         {/* Sample Questions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-1000">

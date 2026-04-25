@@ -1,5 +1,5 @@
 import { type QueryResponse } from "@/lib/types";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible } from "@base-ui/react/collapsible";
 import { ChevronRight, Database, Activity, Code } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -20,8 +20,8 @@ export function RagMetadataInspector({ data }: Props) {
 
   return (
     <div className="border-t bg-muted/20 border-b relative z-60">
-      <Collapsible open={isOpen} onOpenChange={(val) => setIsOpen(val)}>
-        <CollapsibleTrigger 
+      <Collapsible.Root open={isOpen} onOpenChange={(val) => setIsOpen(val)}>
+        <Collapsible.Trigger 
           className="flex w-full items-center justify-between px-6 py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer relative z-[100]"
         >
           <div className="flex items-center gap-6">
@@ -40,9 +40,9 @@ export function RagMetadataInspector({ data }: Props) {
             </span>
             <ChevronRight className={cn("h-4 w-4 transition-transform duration-300", isOpen && "rotate-90")} />
           </div>
-        </CollapsibleTrigger>
+        </Collapsible.Trigger>
         
-        <CollapsibleContent className="px-6 pb-6 pt-2 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-300 data-[state=closed]:hidden">
+        <Collapsible.Panel className="px-6 pb-6 pt-2 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-300 data-[state=closed]:hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[450px]">
             
             {/* PART D: Retrieved Documents & Similarity Scores */}
@@ -96,8 +96,8 @@ export function RagMetadataInspector({ data }: Props) {
             </div>
 
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+        </Collapsible.Panel>
+      </Collapsible.Root>
     </div>
   );
 }
