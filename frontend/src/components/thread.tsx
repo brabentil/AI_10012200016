@@ -56,7 +56,7 @@ export const Thread: FC = () => {
       <ThreadPrimitive.Viewport
         turnAnchor="top"
         data-slot="aui_thread-viewport"
-        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth"
+        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth pt-8 scroll-pt-24"
       >
         <AuiIf condition={(s) => s.thread.isEmpty}>
           <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
