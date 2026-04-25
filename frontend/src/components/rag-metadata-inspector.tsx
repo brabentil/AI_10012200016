@@ -20,7 +20,11 @@ export function RagMetadataInspector({ data }: Props) {
 
   return (
     <div className="border-t bg-muted/20 border-b relative z-60">
-      <Collapsible.Root open={isOpen} onOpenChange={(val) => setIsOpen(val)}>
+      <Collapsible.Root 
+        key={isOpen ? "open" : "closed"} 
+        open={isOpen} 
+        onOpenChange={(val) => setIsOpen(val)}
+      >
         <Collapsible.Trigger 
           className="flex w-full items-center justify-between px-6 py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer relative z-[100]"
         >
@@ -42,7 +46,12 @@ export function RagMetadataInspector({ data }: Props) {
           </div>
         </Collapsible.Trigger>
         
-        <Collapsible.Panel className="px-6 pb-6 pt-2 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-300 data-[state=closed]:hidden">
+        <Collapsible.Panel 
+          className={cn(
+            "px-6 pb-6 pt-2 overflow-hidden duration-300",
+            isOpen ? "animate-in fade-in slide-in-from-top-1" : "animate-out fade-out"
+          )}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[450px]">
             
             {/* PART D: Retrieved Documents & Similarity Scores */}
